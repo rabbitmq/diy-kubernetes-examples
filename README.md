@@ -26,3 +26,10 @@ and the rest of [RabbitMQ documentation](https://www.rabbitmq.com/documentation.
 
 Having [metrics](https://www.rabbitmq.com/monitoring.html), both of RabbitMQ and applications that use it,
 is critically important when making informed decisions about production systems.
+
+
+## Copyright and License
+
+Released under the [Mozilla Public License 2.0](https://www.mozilla.org/en-US/MPL/2.0/).
+
+(c) VMware, Inc. or its affiliates, 2020.
