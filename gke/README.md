@@ -26,6 +26,13 @@ production system operator will have to worry about sooner rather than later:
  * How to set up cluster monitoring with Prometheus and Grafana
  * How to deploy a PerfTest instance to do basic functional and load testing of the cluster
 
+This example by no means covers every aspect that may be relevant when deploying
+RabbitMQ to Kubernetes; our goal is to highlight the most important parts.
+Deployment- and workload-specific decisions such as what [resource limits](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/) to apply
+to RabbitMQ node pod (containers), [what kind of durable storage](https://www.rabbitmq.com/blog/2020/06/18/cluster-sizing-case-study-quorum-queues-part-1/) to use,
+how to approach TLS certificate/key pair rotation, log aggregation, and upgrades are out of scope for this post.
+
+
 ## Production (Non-)Suitability
 
 Some values in this example **may or may not be optimal for your deployment**. We encourage users
