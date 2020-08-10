@@ -111,7 +111,7 @@ The final Stateful Set file can be found in the [under `./examples/gke`](https:/
 Do not deploy the Stateful Set yet. We will need to create a few other Kubernetes resources
 before we can tie everything together in the Stateful Set.
 
-## Create a Service For Clustering
+## Create a Service For Clustering and CLI Tools
 
 The Stateful Set definition can reference a Service which gives the Pods of the Stateful Set their network identity. Here, we are referring to the [`v1.StatefulSet.Spec.serviceName` property](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#statefulsetspec-v1-apps).
 
@@ -417,9 +417,10 @@ watch kubectl get all
 # => statefulset.apps/rabbitmq   0/1     8s
 ```
 
-## Client Service
+## Create a Service for Client Connections
 
 If all the steps above succeeded, you should have functioning RabbitMQ cluster deployed on Kubernetes! 🥳
+However, having a RabbitMQ cluster on Kubernetes is only useful clients can [connect](https://www.rabbitmq.com/connections.html) to it.
 
 Time to create a Service to make the cluster accessible to [client connections](https://www.rabbitmq.com/connections.html).
 
@@ -572,3 +573,20 @@ This in turn can be done by adding `rabbitmq_promethus` to the `enabled_plugins`
 The Prometheus scraping port, 15972, must be open on both the Pod and the client Service.
 
 Node and cluster metrics can be [visualised with Grafana](https://www.rabbitmq.com/prometheus.html).
+
+
+## Alternative Option: the Kubernetes Cluster Operator for RabbitMQ
+
+As this post demonstrates, there are quite a few parts involved in hosting a stateful data services
+such as RabbitMQ on Kubernetes. It may seem like a daunting task.
+There are several alternatives to this kind of DIY deployment demonstrated in this post.
+
+Team RabbitMQ at VMware has open sourced a [Kubernetes Operator pattern](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/)
+implementation for RabbitMQ. As of August 2020, this is a young project under active development.
+While it currently has limitations, it is our recommended option over the manual DIY setup
+demonstrated in this post.
+
+See [RabbitMQ Cluster Operator for Kubernetes ](https://www.rabbitmq.com/kubernetes/operator/operator-overview.html) to learn more.
+The project is developed in the open at [rabbitmq/cluster-operator on GitHub](). Give it a try and let us know how it goes.
+Besides GitHub, two great venues for providing feedback to the team behind the Operator are the [RabbitMQ mailing list](https://groups.google.com/forum/#!forum/rabbitmq-users)
+and the [`#kubernetes channel in RabbitMQ community Slack`](https://rabbitmq-slack.herokuapp.com/).
