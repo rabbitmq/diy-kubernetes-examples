@@ -17,6 +17,7 @@ counterparts. We cover several key aspects of a manual RabbitMQ deployment on Ku
  * Kubernetes [access control (RBAC)](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) rules
  * [Liveness and readiness](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#container-probes) probes
  * A [load balancer service](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer) for external client connections
+ * Resource limits (CPU, memory, disk, network bandwidth)
 
 In this example, we will try to cover the key parts as well as mention a couple
 more steps that are not technically required to run RabbitMQ on Kubernetes, but every
@@ -440,7 +441,85 @@ kubectl get svc
 # => service/rabbitmq-client     LoadBalancer   10.59.243.60   34.105.135.116   15672:30902/TCP,15692:30605/TCP,5672:31210/TCP   2m19s
 ```
 
-### Using `rabbitmq-perf-test` to Run a Functional and Load Test of the Cluster
+## Resource Usage and Limits
+
+[Container resource management](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/) is a topic that deserves
+its own post. [Capacity planning](https://www.rabbitmq.com/blog/tag/capacity-planning/) recommendations are entirely workload-,
+environment- and system-specific. Optimal values are usually found via extensive [monitoring](https://www.rabbitmq.com/monitoring.html) of the system, trial, and error.
+However, when picking the limits and resource allocation settings, consider a few RabbitMQ-specific things.
+
+### Use the Latest Major Erlang Release
+
+RabbitMQ runs on the Erlang runtime. Recent Erlang/OTP releases have introduced a number of improvements highly relevant to
+the users who run RabbitMQ on Kubernetes:
+
+ * In Erlang 22, inter-node communication [latency and head-of-line blocking(http://blog.erlang.org/OTP-22-Highlights/) have been
+   significantly reduced. In earlier versions, link congestion was known to make [cluster node heartbeat](https://www.rabbitmq.com/nettick.html) false
+   positives likely.
+ * In Erlang 23, the runtime will [respect the container CPU quotas](http://blog.erlang.org/OTP-23-Highlights/) when computing the default
+   number of schedulers to start. This means that nodes will respect the Kubernetes-managed CPU resource limits.
+
+Docker community image for RabbitMQ ships with Erlang 23 at the time of writing. Users of custom Docker images are highly recommended
+to provision Erlang 23 as well.
+
+### CPU Resource Usage
+
+RabbitMQ was designed for workloads that involve [multiple queues](https://www.rabbitmq.com/queues.html#runtime-characteristics) and where
+a node serves multiple clients at the same time. Nodes will generally use all the [CPU cores allowed](https://www.rabbitmq.com/runtime.html)
+without any explicit configuration. As the number of cores grows, some tuning may be necessary to reduce [CPU context switching](https://www.rabbitmq.com/runtime.html#scheduling).
+
+How CPU time is spent can be monitored via the [runtime thread activity metrics](https://www.rabbitmq.com/runtime.html#thread-stats) which
+are also exposed via the [RabbitMQ Prometheus plugin](https://www.rabbitmq.com/prometheus.html).
+
+If RabbitMQ pods hover around their CPU resource allowance and experience throttling in environments with a large number of
+relatively idle clients, the load likely can be [reduced with a modest amount of configuration](https://www.rabbitmq.com/runtime.html#cpu-reduce-idle-usage).
+
+### Memory Limits
+
+RabbitMQ uses the concept of a [runtime memory high watermark](https://www.rabbitmq.com/memory.html). By default a node will use 40% of detected
+(available) memory as the watermark. When the watermark is crossed, publishers across the entire cluster will be blocked
+and more aggressive paging out to disk initiated. The watermark value may seem like a memory quota on Kubernetes at first
+but there is an important difference: RabbitMQ resource alarms assume a node can typically recover from this state. For example,
+a large backlog of messages will eventually be consumed.
+
+Kubernetes memory limits are [enforced by the OOM killer](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#requests-and-limits):
+no recovery is expected. This means that a RabbitMQ node's high memory watermark **must be lower** than the memory limit
+imposed on the node container. Kubernetes deployments should use the relative watermark values in the [recommended range](https://www.rabbitmq.com/production-checklist.html#resource-limits-ram).
+
+[Memory usage breakdown data](https://www.rabbitmq.com/memory-use.html) should be used to determine what consumes most memory on the node.
+
+### Disk Usage
+
+We highly recommend overprovisioning the [disk space available to RabbitMQ containers](https://www.rabbitmq.com/production-checklist.html#resource-limits-disk-space).
+A node that has run out of disk space won't always be able to recover from such an event. Such nodes must be
+decomissioned and replaced.
+
+### Consider Available Network Link Bandwidth
+
+Finally, consider what kind of links and Kubernetes networking options are used for inter-node communication. Network link congestion
+can be a significant limiting factor to system throughput and affect its availability.
+
+Below is a very simplistic formula to calculate the amount of bandwidth needed by a workload, in bits:
+
+```
+# peak message rate * bits per message * 110% to account for metadata and protocol framing
+PeakMessageRate * AverageMessagePayloadSizeInBytes * 8 * 1.1
+```
+
+Therefore a workload with average message size of 3 kiB and expected peak message rate
+of 20K messages a second can consume up to
+
+```
+3 kiB * 20000/second * 8 * 1.1 = 528 megabits/second
+```
+
+of bandwidth.
+
+Team RabbitMQ maintains a [Grafana dashboard](https://www.rabbitmq.com/prometheus.html#other-dashboards) for inter-node communication
+link metrics.
+
+
+## Using `rabbitmq-perf-test` to Run a Functional and Load Test of the Cluster
 
 RabbitMQ comes with a load simulation tool, [PerfTest](https://rabbitmq.github.io/rabbitmq-perf-test/stable/htmlsingle/), which can be executed from outside of a cluster or
 deployed to Kubernetes using the `perf-test` public [docker image](https://hub.docker.com/r/pivotalrabbitmq/perf-test/). Here's an example of how
