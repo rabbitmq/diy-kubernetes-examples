@@ -83,7 +83,6 @@ spec:
         - name: rabbitmq-config-rw
           mountPath: "/etc/rabbitmq"
           # mountPath: "/etc/rabbitmq/conf.d/"
-          mountPath: "/var/lib/rabbitmq"
         # rabbitmq data directory
         - name: rabbitmq-data
           mountPath: "/var/lib/rabbitmq/mnesia"
