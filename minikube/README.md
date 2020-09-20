@@ -104,7 +104,7 @@ Deploy the config map, services, a stateful set and so on:
 
 ``` sh
 # will apply all files under this directory
-kubectl create -f examples/minikube
+kubectl create -f minikube
 ```
 
 ### Check Cluster Status
@@ -120,7 +120,7 @@ To run `rabbitmq-diagnostics cluster_status`:
 
 ``` sh
 FIRST_POD=$(kubectl get pods --namespace test-rabbitmq -l 'app=rabbitmq' -o jsonpath='{.items[0].metadata.name }')
-kubectl exec --namespace=test-rabbitmq $FIRST_POD rabbitmq-diagnostics cluster_status
+kubectl exec --namespace=test-rabbitmq $FIRST_POD -- rabbitmq-diagnostics cluster_status
 ```
 
 to check cluster status. Note that nodes can take some time to start and discover each other.
