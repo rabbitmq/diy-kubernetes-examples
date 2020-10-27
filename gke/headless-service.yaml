@@ -10,7 +10,7 @@ spec:
     port: 4369
     protocol: TCP
     targetPort: 4369
-  - name: cluster-links
+  - name: cluster-rpc
     port: 25672
     protocol: TCP
     targetPort: 25672
