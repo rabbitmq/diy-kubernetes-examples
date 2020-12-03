@@ -74,7 +74,7 @@ The plugin requires the following access to Kubernetes resources:
 Specify a [Role, Role Binding and a Service Account](https://kubernetes.io/docs/reference/access-authn-authz/rbac/)
 to configure this access.
 
-An example namespace, along with RBAC rules can be seen in the [rbac.yaml exanple file](https://github.com/rabbitmq/rabbitmq-peer-discovery-k8s/blob/master/examples/minikube/rbac.yaml).
+An example namespace, along with RBAC rules can be seen in the [rbac.yaml exanple file](https://github.com/rabbitmq/diy-kubernetes-examples/blob/master/minikube/rbac.yaml).
 
 If following from the example, use the following command to create a namespace and the required RBAC rules.
 Note that this creates a namespace called `test-rabbitmq`.
@@ -106,7 +106,7 @@ The Stateful Set ensures that the RabbitMQ nodes are deployed one at a time, whi
 The Stateful Set definition file is packed with detail such as mounting configuration, mounting credentials, openening ports, etc,
 which is explained topic-wise in the following sections.
 
-The final Stateful Set file can be found in the [under `./examples/gke`](https://github.com/rabbitmq/rabbitmq-peer-discovery-k8s/tree/master/examples/gke/statefulset.yaml).
+The final Stateful Set file can be found in the [under `./gke`](https://github.com/rabbitmq/diy-kubernetes-examples/blob/master/gke/statefulset.yaml).
 
 Do not deploy the Stateful Set yet. We will need to create a few other Kubernetes resources
 before we can tie everything together in the Stateful Set.
@@ -119,7 +119,7 @@ This is required by RabbitMQ for clustering, and as mentioned in the Kubernetes 
 
 RabbitMQ uses port 4369 for inter-node communication, and since this Service is used internally and does not need to be exposed, we create a [Headless Service](https://kubernetes.io/docs/concepts/services-networking/service/#headless-services).
 
-[Example Headless Service](https://github.com/rabbitmq/rabbitmq-peer-discovery-k8s/tree/master/examples/gke/headless-service.yaml).
+[Example Headless Service](https://github.com/rabbitmq/diy-kubernetes-examples/blob/master/gke/headless-service.yaml).
 
 If following from the example, run the following to create a Headless Service:
 
@@ -141,7 +141,7 @@ In order for RabbitMQ nodes to retain data between Pod restarts, node's data dir
 A [Persistent Volume](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) can be attached to each RabbitMQ Pod.
 Although some data can be synced from other nodes, transient volumes defy most benefits of clustering.
 
-In our [statefulset.yaml example](https://github.com/rabbitmq/rabbitmq-peer-discovery-k8s/tree/master/examples/gke/statefulset.yaml#L12-L22),
+In our [statefulset.yaml example](https://github.com/rabbitmq/diy-kubernetes-examples/blob/master/gke/statefulset.yaml#L12-L22),
 we create a Persistent Volume Claim to provision a Persistent Volume.
 
 The Persistent Volume is mounted at `/var/lib/rabbitmq/mnesia`. This path is used for a [`RABBITMQ_MNESIA_BASE` location](https://www.rabbitmq.com/relocate.html): the base directory
@@ -157,12 +157,12 @@ to mount a Persistent Volume at the updated path.
 
 RabbitMQ nodes and CLI tools use a shared secret known as [the Erlang Cookie](https://www.rabbitmq.com/clustering.html#erlang-cookie), to authenticate to each other.
 The cookie value is a string of alphanumeric characters up to 255 characters in size. The value must be generated before creating
-a RabbitMQ cluster since it is needed by the nodes to [form a cluster](https://github.com/rabbitmq/rabbitmq-peer-discovery-k8s/blob/gke-examples/examples/gke/statefulset.yaml#L72-L75).
+a RabbitMQ cluster since it is needed by the nodes to [form a cluster](https://github.com/rabbitmq/diy-kubernetes-examples/blob/master/gke/statefulset.yaml#L72-L75).
 
 With the community Docker image, RabbitMQ nodes will expect the cookie to be at `/var/lib/rabbitmq/.erlang.cookie`.
 We recommend creating a Secret and mounting it as a Volume on the Pods at this path.
 
-This is demonstrated in the [statefulset.yaml example](https://github.com/rabbitmq/rabbitmq-peer-discovery-k8s/tree/master/examples/gke/statefulset.yaml#L101-L105) file.
+This is demonstrated in the [statefulset.yaml example](https://github.com/rabbitmq/diy-kubernetes-examples/blob/master/gke/statefulset.yaml#L101-L105) file.
 
 The secret is expected to have the following key/value pair:
 
@@ -195,7 +195,7 @@ and mounting them onto the RabbitMQ Pods.
 The `RABBITMQ_DEFAULT_USER` and `RABBITMQ_DEFAULT_PASS` environment variables then can be set to the Secret values.
 The community Docker image will use them to [override default user credentials](https://www.rabbitmq.com/access-control.html#seeding).
 
-[Example for reference](https://github.com/rabbitmq/rabbitmq-peer-discovery-k8s/tree/master/examples/gke/statefulset.yaml#L91-L100).
+[Example for reference](https://github.com/rabbitmq/diy-kubernetes-examples/blob/master/gke/statefulset.yaml#L91-L100).
 
 The secret is expected to have the following key/value pair:
 
@@ -229,7 +229,7 @@ There are [several ways](https://www.rabbitmq.com/configure.html) to configure a
 Configuration files can be expressed as [Config Maps](https://kubernetes.io/docs/concepts/configuration/configmap/),
 and mounted as a Volume onto the RabbitMQ pods.
 
-To create a Config Map with RabbitMQ configuration, apply our [minimal configmap.yaml example](https://github.com/rabbitmq/rabbitmq-peer-discovery-k8s/tree/master/examples/gke/configmap.yaml):
+To create a Config Map with RabbitMQ configuration, apply our [minimal configmap.yaml example](https://github.com/rabbitmq/diy-kubernetes-examples/blob/master/gke/configmap.yaml):
 
 ```shell
 kubectl apply -f configmap.yaml
@@ -258,17 +258,17 @@ As a few other projects in the Kubernetes community, we use an [init container](
 
 Examples:
 
-* [The Config Map](https://github.com/rabbitmq/rabbitmq-peer-discovery-k8s/blob/master/examples/minikube/configmap.yaml)
-* [Using an Init Container to mount the Config Map](https://github.com/rabbitmq/rabbitmq-peer-discovery-k8s/tree/master/examples/gke/statefulset.yml#L30-L64)
+* [The Config Map](https://github.com/rabbitmq/diy-kubernetes-examples/blob/master/minikube/configmap.yaml)
+* [Using an Init Container to mount the Config Map](https://github.com/rabbitmq/diy-kubernetes-examples/blob/master/gke/statefulset.yml#L30-L64)
 
 ### Run The Pod As the `rabbitmq` User
 
 The Docker image [runs as the `rabbitmq` user with uid 999]([https://github.com/docker-library/rabbitmq/blob/38bc089c287d05d22b03a4d619f7ad9d9a4501bc/3.8/ubuntu/Dockerfile#L186-L187](https://github.com/docker-library/rabbitmq/blob/38bc089c287d05d22b03a4d619f7ad9d9a4501bc/3.8/ubuntu/Dockerfile#L186-L187)) and writes to the `rabbitmq.conf` file.
 Thus, the file permissions on `rabbitmq.conf` must allow this. A [Pod Security Context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/) can be
 added to the Stateful Set definition to achieve this.
-Set the [`runAsUser`, `runAsGroup` and the `fsGroup`](https://github.com/rabbitmq/rabbitmq-peer-discovery-k8s/tree/master/examples/gke/statefulset.yaml#L66-L75) to 999 in the Security Context.
+Set the [`runAsUser`, `runAsGroup` and the `fsGroup`](https://github.com/rabbitmq/diy-kubernetes-examples/blob/master/gke/statefulset.yaml#L66-L75) to 999 in the Security Context.
 
-See [Security Context](https://github.com/rabbitmq/rabbitmq-peer-discovery-k8s/blob/gke-examples/examples/gke/statefulset.yaml#L72-L75)
+See [Security Context](https://github.com/rabbitmq/diy-kubernetes-examples/blob/master/gke/statefulset.yaml#L72-L75)
 in the Stateful Set definition file.
 
 ### Importing Definitions
@@ -314,7 +314,7 @@ even when pods are restarted one by one, in order.
 
 This is covered in a dedicated section of the RabbitMQ clustering guide: [Restarts and Health Checks (Readiness Probes)](https://www.rabbitmq.com/clustering.html#restarting-readiness-probes).
 
-The [readiness probe section](https://github.com/rabbitmq/rabbitmq-peer-discovery-k8s/blob/master/examples/gke/statefulset.yaml#L132-L143)
+The [readiness probe section](https://github.com/rabbitmq/diy-kubernetes-examples/blob/master/gke/statefulset.yaml#L132-L143)
 in the Stateful Set definition file demonstrates how to configure a readiness probe.
 
 
@@ -356,7 +356,7 @@ rabbitmq-diagnostics -q check_local_alarms
 
 Note, however, that they will fail for the nodes [paused by the "pause minority" partition handliner strategy](https://www.rabbitmq.com/partitions.html).
 
-The [liveness probe section](https://github.com/rabbitmq/rabbitmq-peer-discovery-k8s/blob/master/examples/gke/statefulset.yaml#L119-L131)
+The [liveness probe section](https://github.com/rabbitmq/diy-kubernetes-examples/blob/master/gke/statefulset.yaml#L119-L131)
 in the Stateful Set definition file demonstrates how to configure a liveness probe.
 
 
@@ -365,7 +365,7 @@ in the Stateful Set definition file demonstrates how to configure a liveness pro
 RabbitMQ [supports plugins](https://www.rabbitmq.com/plugins.html). Some plugins are essential when running RabbitMQ on Kubernetes,
 e.g. the Kubernetes-specific peer discovery implementation.
 
-The [`rabbitmq_peer_discovery_k8s` plugin](https://github.com/rabbitmq/rabbitmq-peer-discovery-k8s) is required
+The [`rabbitmq_peer_discovery_k8s` plugin](https://github.com/rabbitmq/diy-kubernetes-examples) is required
 to deploy RabbitMQ on Kubernetes.
 It is quite common to also enable [`rabbitmq_management` plugin](https://www.rabbitmq.com/management.html) in order to get a browser-based management UI
 and an HTTP API, and [`rabbitmq_prometheus`](https://www.rabbitmq.com/prometheus.html) for monitoring.
@@ -375,7 +375,7 @@ We recommend mounting the plugins file, `enabled_plugins`, to the node configura
 A Config Map can be used to express the value of the `enabled_plugins` file. It can then be mounted
 as a Volume onto each RabbitMQ container in the Stateful Set definition.
 
-In our [configmap.yaml example](https://github.com/rabbitmq/rabbitmq-peer-discovery-k8s/tree/master/examples/gke/configmap.yaml) file,
+In our [configmap.yaml example](https://github.com/rabbitmq/diy-kubernetes-examples/blob/master/gke/configmap.yaml) file,
 we demonstrate how to popular the the `enabled_plugins` file and mount it under the `/etc/rabbitmq` directory.
 
 
@@ -387,7 +387,7 @@ Depending on the plugins that are enabled on a node, the list of required ports 
 
 The example `enabled_plugins` file mentioned above enables a few plugins: `rabbitmq_peer_discovery_k8s` (mandatory), `rabbitmq_management`
 and `rabbitmq_prometheus`.
-Therefore, the service must [open several ports](https://github.com/rabbitmq/rabbitmq-peer-discovery-k8s/tree/master/examples/gke/statefulset.yaml#L106-L118) relevant for the core server and the enabled plugins:
+Therefore, the service must [open several ports](https://github.com/rabbitmq/diy-kubernetes-examples/blob/master/gke/statefulset.yaml#L106-L118) relevant for the core server and the enabled plugins:
 
  * `5672`: used by AMQP 0-9-1 and AMQP 1.0 clients
  * `15672`: management UI and  HTTP API)
@@ -396,7 +396,7 @@ Therefore, the service must [open several ports](https://github.com/rabbitmq/rab
 
 ## Deploy the Stateful Set
 
-These are the key components in the Stateful Set file. Please have a look [at the file](https://github.com/rabbitmq/rabbitmq-peer-discovery-k8s/tree/master/examples/gke/statefulset.yaml),
+These are the key components in the Stateful Set file. Please have a look [at the file](https://github.com/rabbitmq/diy-kubernetes-examples/blob/master/gke/statefulset.yaml),
 and if following from the example, deploy the Stateful Set:
 
 ```shell
@@ -427,7 +427,7 @@ Time to create a Service to make the cluster accessible to [client connections](
 The type of the Service depends on your use case. The [Kubernetes API reference](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#servicespec-v1-core)
 gives a good overview of the types of Services available.
 
-In our [client-service.yaml example](https://github.com/rabbitmq/rabbitmq-peer-discovery-k8s/tree/master/examples/gke/client-service.yaml), we have gone with a `LoadBalancer` Service.
+In our [client-service.yaml example](https://github.com/rabbitmq/diy-kubernetes-examples/blob/master/gke/client-service.yaml), we have gone with a `LoadBalancer` Service.
 This gives us an external IP that can be used to access the RabbitMQ cluter.
 
 For example, this should make it possible to visit the RabbitMQ management UI by visiting `{external-ip}:15672`, and signing in.
