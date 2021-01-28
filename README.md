@@ -1,3 +1,5 @@
+### The recommended way to deploy RabbitMQ on Kubernetes is the [RabbitMQ Cluster Operator for Kubernetes](https://www.rabbitmq.com/kubernetes/operator/operator-overview.html). The Operator is developed [on GitHub](https://github.com/rabbitmq/cluster-operator/) and contains its own [set of examples](https://github.com/rabbitmq/cluster-operator/tree/master/docs/examples).
+
 # DIY RabbitMQ on Kubernetes
 
 This directory contains **examples** that demonstrate minimalistic [RabbitMQ cluster](https://www.rabbitmq.com/clustering.html) deployments
@@ -7,11 +9,6 @@ There are several examples:
  * An [extensive one that targets the Google Kubernetes Engine (GKE)](./gke), originally contributed by Feroz Jilla
  * A [basic one that targets Minikube](./minikube)
  * Another [basic one that targets Kind](./kind), originally contributed by Gabriele Santomaggio
-
-For a more comprehensive open source RabbitMQ on Kubernetes deployment solution,
-see [RabbitMQ Cluster Operator for Kubernetes](https://www.rabbitmq.com/kubernetes/operator/operator-overview.html).
-The Operator is developed [on GitHub](https://github.com/rabbitmq/cluster-operator/) and contains its
-own [set of examples](https://github.com/rabbitmq/cluster-operator/tree/master/docs/examples).
 
 ## Production (Non-)Suitability
 
